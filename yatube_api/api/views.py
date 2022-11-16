@@ -14,7 +14,7 @@ from api.serializers import (
     GroupSerializer,
     PostSerializer
 )
-from posts.models import Comment, Follow, Group, Post
+from posts.models import Group, Post
 
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -29,7 +29,6 @@ class PostViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     permission_classes = (IsOwnerOrReadOnly,)
-    queryset = Comment.objects.none()
     serializer_class = CommentSerializer
 
     def get_queryset(self):
@@ -49,7 +48,6 @@ class GroupViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class FollowViewSet(viewsets.ModelViewSet):
-    queryset = Follow.objects.all()
     serializer_class = FollowSerializer
     permission_classes = (IsAuthenticated, IsAuthenticatedOrReadOnly)
     filter_backends = (filters.SearchFilter,)

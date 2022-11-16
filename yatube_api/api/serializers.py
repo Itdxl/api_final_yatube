@@ -1,4 +1,8 @@
-from rest_framework import serializers
+from rest_framework.serializers import (
+    CurrentUserDefault,
+    ModelSerializer,
+    ValidationError,
+)
 from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueTogetherValidator
 
@@ -6,7 +10,7 @@ from rest_framework.validators import UniqueTogetherValidator
 from posts.models import Comment, Follow, Group, Post, User
 
 
-class PostSerializer(serializers.ModelSerializer):
+class PostSerializer(ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True)
 
     class Meta:
@@ -14,8 +18,8 @@ class PostSerializer(serializers.ModelSerializer):
         model = Post
 
 
-class CommentSerializer(serializers.ModelSerializer):
-    author = serializers.SlugRelatedField(
+class CommentSerializer(ModelSerializer):
+    author = SlugRelatedField(
         read_only=True, slug_field='username'
     )
 
@@ -24,19 +28,19 @@ class CommentSerializer(serializers.ModelSerializer):
         model = Comment
 
 
-class GroupSerializer(serializers.ModelSerializer):
+class GroupSerializer(ModelSerializer):
     class Meta:
         model = Group
         fields = ('title', 'slug', 'description')
 
 
-class FollowSerializer(serializers.ModelSerializer):
-    user = serializers.SlugRelatedField(
+class FollowSerializer(ModelSerializer):
+    user = SlugRelatedField(
         queryset=User.objects.all(),
         slug_field='username',
-        default=serializers.CurrentUserDefault()
+        default=CurrentUserDefault()
     )
-    following = serializers.SlugRelatedField(
+    following = SlugRelatedField(
         queryset=User.objects.all(),
         slug_field='username'
     )
@@ -54,8 +58,9 @@ class FollowSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         """Can't follow yourself."""
-        if data['user'] == data['following']:
-            raise serializers.ValidationError(
+        if (self.context['request'].user.username
+           == self.initial_data.get('following', False)):
+            raise ValidationError(
                 'Following yourself is not possible'
             )
         return data
